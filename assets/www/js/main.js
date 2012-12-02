@@ -1,20 +1,21 @@
 //http://coenraets.org/blog/2011/12/backbone-js-wine-cellar-tutorial-part-1-getting-started/
-window.Article = Backbone.Model.extend();
+window.Article = Backbone.Model.extend({
+	idAttribute: "nid"
+});
 
 window.ArticleCollection = Backbone.Collection.extend({
     model: Article,
-    url: "http://www.phillipian.net/mobile/node.json"
+    url: "http://www.phillipian.net/mobile/views/services_article_list.json"
 });
 
 window.ArticleListView = Backbone.View.extend({
     tagName: 'ul',
     id: 'article-list',
-	//attributes: {'data-role': 'list-view'},
     initialize: function () {
         this.model.bind("reset", this.render, this);
     },
-    render: function (eventName) {
-    	
+    render: function (eventName) {	
+    	console.log("rendering ArticleListView");
         _.each(this.model.models, function (article) {
         	$(this.el).listview();
             $(this.el).append(new ArticleListItemView({model:article}).render().el);
@@ -26,59 +27,115 @@ window.ArticleListView = Backbone.View.extend({
 
 window.ArticleListItemView = Backbone.View.extend({
     tagName: 'li',
+    template: _.template($('#ArticleListItemView-tpl').html()),
+    //template: _.template('<a href="#article/<%= nid %>"><h3 class="ui-li-heading"><%= title %></h3><p class="ui-li-aside ui-li-desc"><%= section %></p><p class="ui-li-desc"><%= writer %></p></a>'),
     render: function (eventName) {
-    	$(this.el).html(this.model.get("title"));
+    	$(this.el).html(this.template(this.model.toJSON()));
         return this;
     }
 });
 
-var AppRouter = Backbone.Router.extend({
-    routes:{
-        "": "list",
-        "article/:id": "articleView"
-    },
- 
-    list: function () {
-        this.articleList = new ArticleCollection();
-        this.articleListView = new ArticleListView({model:this.articleList});
-        this.articleList.fetch();
-        //$('#main').html("hello");
-        $('#main-content').html(this.articleListView.render().el);
-    },
- 
-    articleView:function (nid) {
-        this.article = this.articleList.get(nid);
-        this.articleView = new ArticleView({model:this.article});
-        //$('#content').html(this.wineView.render().el);
+window.HomePageView = Backbone.View.extend({
+    render: function (eventName) {
+		$(this.el).html($('#HomePageView-tpl').html());
+        return this;
     }
 });
- 
-var app = new AppRouter();
-Backbone.history.start();
+
+window.ArticlePageView = Backbone.View.extend({
+    template: _.template($('#ArticlePageView-tpl').html()),
+    render: function (eventName) {
+		$(this.el).html(this.template(this.model.toJSON()));
+        $('.back').live('click', function(event) {
+        	$.mobile.changePage($("#home"), {changeHash:false, transition: 'none'});
+        });
+        return this;
+    }
+});
+
+window.TestView = Backbone.View.extend({
+    render: function (eventName) {
+        $(this.el).html('<h1>test</h1>');
+        return this;
+    }
+});
+
+window.back = function() {
+	window.history.back();
+    return false;
+};
+
+var AppRouter = Backbone.Router.extend({
+	initialize: function () {
+        // Handle back button throughout the application
+        $('.back').live('click', function(event) {
+        	$.mobile.changePage($("#home"), {changeHash:false, transition: 'none'});
+        });
+    },
+    
+	routes: {
+        "": "home",
+        "test": "test",
+        "article/:nid": "articleView"
+    },
+    
+    home: function () {
+		this.articleList = new ArticleCollection();
+        this.articleListView = new ArticleListView({model:this.articleList});
+        this.articleList.fetch();
+        $('#main-content').html(this.articleListView.render().el);
+    },
+    
+    
+    test: function() {
+    	this.changePage(new TestView());
+    },
+    
+    articleView: function (nid) {
+    	console.log("Changed to article with nid " + nid);
+    	//this.article = new Article({id: nid});
+    	this.article = this.articleList.get(nid);
+        this.articlePageView = new ArticlePageView({model: this.article});
+        this.changePage(this.articlePageView);
+    },
+    
+    changePage: function (page) {
+        $(page.el).attr('data-role', 'page');
+        page.render();
+        $('body').append($(page.el));
+        var transition = $.mobile.defaultPageTransition;
+        // We don't want to slide the first page
+        if (this.firstPage) {
+            transition = 'none';
+            this.firstPage = false;
+        }
+        $.mobile.changePage($(page.el), {changeHash:false, transition: transition});
+    }
+    
+});
+
 
 $(document).ready(function() {
 	document.addEventListener("deviceready", onDeviceReady, false);
+	
+	$("#main-content").niceScroll();
+	var app = new AppRouter();
+	Backbone.history.start();
+	document.addEventListener("backbutton", app.back, false);
+
+	/*document.body.addEventListener('touchmove', function(e) {
+	    // Cancel the event
+	    e.preventDefault();
+	}, false);*/
 });
 
 var pictureSource; // picture source
 var destinationType; // sets the format of returned value
-$(document).ready(function() {
-	document.addEventListener("deviceready", onDeviceReady, false);
 
-});
 function onDeviceReady() {
 	document.addEventListener("menubutton", onMenuKeyDown, false);
 	pictureSource = navigator.camera.PictureSourceType;
 	destinationType = navigator.camera.DestinationType;
-	$.getJSON('http://www.phillipian.net/mobile/all.json', function(data) {
-		$.each(data.articles, function(i, value) {
-			$("<li></li>")
-					.html("<a href=\"#\">" + value.article.title + "</a>")
-					.appendTo("#articles-list");
-
-		});
-		$('#articles-list').listview('refresh');
-	});
 }
 function onMenuKeyDown() {
 	$("[data-position='fixed']").fixedtoolbar('toggle');
