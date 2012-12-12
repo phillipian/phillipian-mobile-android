@@ -1,59 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta name="format-detection" content="telephone=no" />
-<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" />
-<link rel="stylesheet" type="text/css" href="css/jquery.mobile-1.2.0.min.css" />
-<title>The Phillipian Online Mobile</title>
-</head>
-<body>
-	<div data-role="page" id="home">
-		<div data-role="header" data-position="fixed">
-			<h1>The Phillipian Online</h1>
-			<a href="#" data-icon="refresh" class="ui-btn-right">Refresh</a>
-			<div data-role="navbar">
-				<ul>
-					<li><a href="#test">News</a></li>
-					<li><a href="b.html">Commentary</a></li>
-					<li><a href="b.html">Arts</a></li>
-					<li><a href="b.html">Sports</a></li>
-					<li><a href="b.html">Features</a></li>
-				</ul>
-			</div>
-		</div>
-		<div id="main-content" data-role="content">
-		</div>
-		
-	</div>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="format-detection" content="telephone=no" />
+	<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" />
+	<title>The Phillipian Online Mobile</title>
 	
-	<script type="text/template" id="ArticleListItemView-tpl">
-		<a href="#article/<%= nid %>">
-			<h3 class="ui-li-heading"><%= title %></h3>
-			<p class="ui-li-aside ui-li-desc"><%= section %></p>
-			<p class="ui-li-desc"><%= writer %></p>
-		</a>
-	</script>
-	
-	<script type="text/template" id="ArticlePageView-tpl">
-		<div data-role="header" data-position="fixed">
-			<a href="#" class="back" data-role="button" data-icon="arrow-l">Back</a>
-			<h1>Fixed Header!</h1>
-		</div>
-		<div data-role="content">
-			<h3><%= title %></h3>
-			<p><strong>By <%= writer %></strong></p>
-			<%= body %>
-		</div>
-	</script>
+	<link rel="stylesheet" type="text/css" href="css/phillipian-jqm-theme.min.css" />
+	<link rel="stylesheet" type="text/css" href="css/jquery.mobile.structure-1.2.0.min.css" />
+	<link rel="stylesheet" type="text/css" href="css/style.css" />
 	
 	<script type="text/javascript" src="cordova-2.2.0.js"></script>
 	<script type="text/javascript" src="js/jquery-1.8.3.min.js"></script>
 	<script type="text/javascript" src="js/jquery.mobile.config.js"></script>
-	<script type="text/javascript" src="js/jquery.mobile-1.2.0.min.js"></script>
-	<script type="text/javascript" src="js/underscore-min.js"></script>
-	<script type="text/javascript" src="js/backbone-min.js"></script>
-	<script type="text/javascript" src="js/jquery.nicescroll.js"></script>
+	<script type="text/javascript" src="js/jquery.mobile-1.2.0.js"></script>
+	<script type="text/javascript" src="js/underscore.js"></script>
+	<script type="text/javascript" src="js/backbone.js"></script>
+	<script type="text/javascript" src="js/iscroll.js"></script>
+	<script type="text/javascript" src="js/utils.js"></script>
 	<script type="text/javascript" src="js/main.js"></script>
+</head>
+<body>
 </body>
 </html>

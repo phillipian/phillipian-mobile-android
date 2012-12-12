@@ -3,9 +3,12 @@ $(document).bind("mobileinit", function () {
     $.mobile.linkBindingEnabled = false;
     $.mobile.hashListeningEnabled = false;
     $.mobile.pushStateEnabled = false;
-
-    // Remove page from DOM when it's being replaced
-    $('div[data-role="page"]').live('pagehide', function (event, ui) {
+    $.mobile.defaultPageTransition = 'none';
+    
+    // Remove article page from DOM on back press
+    
+    $('.article-page').live('pagehide', function (event, ui) {
+    	console.log("Removing article from DOM")
         $(event.currentTarget).remove();
     });
 });
