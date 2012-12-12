@@ -37,7 +37,13 @@ window.ArticleCollection = Backbone.Collection.extend({
 	model: Article,
 	
 	url: function() {
-		return "http://www.phillipian.net/mobile/views/services_article_list.json?args=" + this.section;
+		return "http://www.phillipian.net/mobile/views/services_article_list.jsonp?args=" + this.section;
+	},
+	
+	sync: function (method, model, options) {
+		options || (options = {});
+		options.dataType = "jsonp";
+	    return Backbone.sync(method, model, options);
 	},
 	
 	loadMoreArticles: function() {	
