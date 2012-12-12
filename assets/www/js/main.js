@@ -6,16 +6,17 @@ window.Article = Backbone.Model.extend({
 		console.log("initializing article nid: " + this.get('nid'));
 		
 		// parse date string into user-viewable format
-		date = new Date(this.get('published'));
+		var date = moment(this.get('published'));
 		
 		// generate teaser
 		// http://stackoverflow.com/questions/4637942/how-can-i-truncate-a-string-in-jquery
-		teaser = $.trim(this.get('body')).substring(0, 180).split(" ").slice(0, -1).join(" ") + "...";
+		var teaser = $.trim(this.get('body')).substring(0, 180).split(" ").slice(0, -1).join(" ") + "...";
 		
 		this.set({
-			publishedDateShort: date.getMonth() + '/' + date.getDate(),
-			publishedDateLong: date.getMonth() + '/' + date.getDate(),
-			teaser: teaser
+			publishedDateShort: date.format('M/D'),
+			publishedDateLong: date.format('dddd, MMMM Do, YYYY'),
+			teaser: teaser,
+			image: $(this.get('image')).removeAttr('width').removeAttr('height').wrap('<p>').parent().html()
 		});
 	},
 	
@@ -102,21 +103,20 @@ window.ArticleListView = Backbone.View.extend({
             $(this.el).append(new ArticleListItemView({model:article}).render().el);
         }, this);
         
-        $(this.el).append('<li class="load-more-link" onclick="app.articleList.loadMoreArticles();">Load more articles...</li>');
+        $(this.el).append('<li data-icon="false"><a class="load-more-link">Load more articles...</a></li>');
         
         $(this.el).listview("refresh"); // refresh to stylize the list!
     	
         $.mobile.loading('hide'); // hide any loading messages that may be up right now
         
+        $('.load-more-link').click(function() {app.articleList.loadMoreArticles();});
+        
         return this;
     },
     
     append: function (model) {
-    	$('.load-more-link').remove();
-    	
-    	$(this.el).append(new ArticleListItemView({model:model}).render().el);
-    	$(this.el).append('<li class="load-more-link" onclick="app.articleList.loadMoreArticles();>Load more articles...</li>');
-    	
+    	$(this.el).children('.article-list-item:last').after(new ArticleListItemView({model:model}).render().el);
+ 
     	$(this.el).listview("refresh");
     }
 });
@@ -128,6 +128,7 @@ window.ArticleListItemView = Backbone.View.extend({
     },
     tagName: 'li',
     attributes: {
+    	'class': 'article-list-item',
     	'data-icon': 'false' // remove the silly jQuery arrow that is by default on each li element in listviews
     },
     render: function (eventName) {
@@ -164,7 +165,7 @@ window.loginPageView = Backbone.View.extend({
 window.AppRouter = Backbone.Router.extend({
 	initialize: function () {
 		console.log("Initializing app router.");
-		window.localStorage.clear();
+		//window.localStorage.clear();
 		
 		this.loggedIn = false;
 		this.user = null;
@@ -196,8 +197,8 @@ window.AppRouter = Backbone.Router.extend({
 			$.mobile.loading('show', {
 	    		text: 'Loading articles...',
 	    		textVisible: true,
-	    	});
-	    	
+	    	});			
+			
 	        $('.section-select-menu').change(function(e) {
 	        	$.mobile.loading('show', {
 		    		text: 'Loading articles...',
@@ -286,17 +287,23 @@ window.AppRouter = Backbone.Router.extend({
     getArticles: function(section) {
 		var newArticleList = new ArticleCollection(section);
 		
-		var cachedArticleListData = window.localStorage.getItem("articleList-" + section);
-
-		if (cachedArticleListData != null && cachedArticleListData.length > 0) {
-			console.log("Loading from local storage");
-			newArticleList.reset(cachedArticleListData);
-			if (newArticleList.length > 1)
-				return newArticleList;
+		if (window.localStorage.getItem("articleList-" + section + "-timestamp") - new Date().getTime() > 3600000) {
+			
+			var cachedArticleListData = window.localStorage.getItem("articleList-" + section);
+	
+			if (cachedArticleListData != null && cachedArticleListData.length > 0) {
+				console.log("Loading from local storage");
+				newArticleList.reset(cachedArticleListData);
+				if (newArticleList.length > 1)
+					return newArticleList;
+			}
 		}
 		console.log("Fetching latest articles from section: " + section);
-		newArticleList.fetch();
-		window.localStorage.setItem("articleList-" + section, JSON.stringify(newArticleList));
+		newArticleList.fetch({success: function(collection, response, options) {
+				window.localStorage.setItem("articleList-" + collection.section, JSON.stringify(collection));
+				window.localStorage.setItem("articleList-" + collection.section + "-timestamp", new Date().getTime());
+			}
+		});
 		return newArticleList;
     },
     
