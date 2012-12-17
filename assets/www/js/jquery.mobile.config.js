@@ -5,6 +5,8 @@ $(document).bind("mobileinit", function () {
     $.mobile.pushStateEnabled = false;
     $.mobile.defaultPageTransition = 'none';
     
+    $.mobile.allowCrossDomainPages = true;
+    
     // Remove article page from DOM on back press
     
     $('.article-page').live('pagehide', function (event, ui) {

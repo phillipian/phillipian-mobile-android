@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <string-array name="pref_font_size_entries">
+        <item>Smallest (12px)</item>
+        <item>Small (14px)</item>
+        <item>Normal (16px)</item>
+        <item>Large (18px)</item>
+        <item>Largest (20px)</item>
+    </string-array>
+    <string-array name="pref_font_size_entryValues">
+        <item>12</item>
+        <item>14</item>
+        <item>16</item>
+        <item>18</item>
+        <item>20</item>
+    </string-array>
+</resources>

@@ -208,6 +208,8 @@ window.AppRouter = Backbone.Router.extend({
 	        	app.changeSection($(this).val()); // is there a better way to do this? not happy with needing to call method on the variable app
 	    	});	
 	        
+	        $('.settings-btn').click(app.showSettings);
+	        
 	        /*
 	        $.post('http://www.phillipian.net/mobile/system/connect.json', function(data) {
 				app.user = data.user;
@@ -227,11 +229,34 @@ window.AppRouter = Backbone.Router.extend({
     
     article: function (nid) {
     	console.log("Changing to article view (nid: " + nid + ")");
-    	this.article = this.articleList.get(nid);
-        this.articlePageView = new ArticlePageView({model: this.article});
+    	this.currentArticle = this.articleList.get(nid);
+        this.articlePageView = new ArticlePageView({model: this.currentArticle});
+        
         this.changePage(this.articlePageView);
     	
-        $('.article-comments').load('disqus-comments.html', {nid: this.article.get('nid')});
+    	window.disqus_shortname = 'phillipian';
+    	window.disqus_url = 'http://phillipian.net/node/' + this.currentArticle.get('nid');
+    	
+    	console.log("load disqus for " + disqus_url);
+    	
+    	$('.share-btn').click( function() {
+	    	window.plugins.share.show({
+	    	    subject: app.currentArticle.get('title'),
+	    	    text: 'http://phillipian.net' + app.currentArticle.get('url')},
+	    	    function() {}, // Success function
+	    	    function() {alert('Share failed')} // Failure function
+	    	);
+    	});
+    	
+    	
+    	/* * * DON'T EDIT BELOW THIS LINE * * */
+    	/*(function() {
+    	    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    	    dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+    	    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    	})(); */
+        
+        //$('.article-comments').load('http://p.phillipian.net/disqus-comments.html', {nid: this.article.get('nid')});
     	//var myScroll = new iScroll('content-wrapper');
     },
     
@@ -263,8 +288,10 @@ window.AppRouter = Backbone.Router.extend({
     changePage: function (page) {
         $(page.el).attr('data-role', 'page');
         $(page.el).attr('data-theme', 'a');
+        
         page.render();
         $('body').append($(page.el));
+        
         var transition = $.mobile.defaultPageTransition;
         $.mobile.changePage($(page.el), {transition: transition});
     	
@@ -310,6 +337,29 @@ window.AppRouter = Backbone.Router.extend({
     addUserToolbar: function() {
     	$('#main-page div[data-role="header"]').append(_.template(tpl.get('user-toolbar'), {name: this.user.name}));
     	$('#user-toolbar').navbar();
+    },
+    
+    showSettings: function() {
+    	window.preferences.show("com.phillipian.mobile.SettingsActivity",
+			function() {
+    			document.addEventListener("backbutton", app.reloadPreferences, false);
+			}, 
+			function(error) {
+				console.log(JSON.stringify(error));
+			});
+    },
+    
+    onDeviceReady: function () {
+    	console.log("Cordova is ready...");
+    	
+    	app.reloadPreferences();
+    	
+        document.addEventListener("menubutton", app.showSettings, false);
+    },
+    
+    reloadPreferences: function() {
+    	window.preferences.get('pref_font_size', function(value) {window.fontSize = parseInt(value); $('body').css('font-size', value);}, function() {});
+    	document.removeEventListener("backbutton", app.reloadPreferences, false);
     }
 });
 
@@ -319,7 +369,10 @@ $(document).ready(function() {
 	    function () {
 	        app = new window.AppRouter();
 	        Backbone.history.start();
+	        //document.addEventListener("deviceready", app.onDeviceReady, false);
 	});
+	
+	//window.preferences = cordova.require("cordova/plugin/applicationpreferences");
 });
 
 /*

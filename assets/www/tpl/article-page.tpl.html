@@ -3,33 +3,26 @@
 		<a class="header-back-button back"><span class="header-logo"><small>the</small>phillipian<small>online</small></span></a>
 	</div>
 	<span class="ui-title" />
-	<a class="settings-btn ui-btn-right" data-icon="gear" data-iconpos="notext">Settings</a>
-	<div data-role="navbar">
-		<ul>
-			<li><a href="#">Like</a></li>
-			<li><a href="#">Comment</a></li>
-			<li><a href="#">Share</a></li>
-		</ul>
-	</div>
+	<a class="share-btn ui-btn-right">Share</a>
 </div>
 <div data-role="content" class="scroll article-view-content" id="content-wrapper">
 	<div id="scroller">
-		<h1><%= title %></h1>
-		<p>By <%= writer %></p>
-		<p>Published on <%= publishedDateLong %></p>
-		<p><small>0 comments</small></p>
-		<% if(image != null) print(image); %>
-		<p class="article-view-image-description">
-			<%
-				if(image_caption != null) print(image_caption);
-				if(image_credit != null) print(" (" + image_credit.toUpperCase() + ")");
-			%>
-		</p>
+	    <div class="article-top">
+			<h1><%= title %></h1>
+			<p><small>By <%= writer %> | <%= publishedDateLong %></small></p>
+			<% if(image != null) print(image); %>
+			<p class="article-view-image-description">
+				<%
+					if(image_caption != null) print(image_caption);
+					if(image_credit != null) print(" (" + image_credit.toUpperCase() + ")");
+				%>
+			</p>
+		</div>
 		<div class="article-view-body">
 			<%= body %>
 		</div>
-        <div class="article-comments">
-            
-        </div>
+        <div id="disqus_thread"></div>
+        <hr>
+        <iframe src="http://p.phillipian.net/disqus-comments.html?nid=<%= nid %>" frameBorder="0" class="article-comments"></iframe>
 	</div>
 </div>
