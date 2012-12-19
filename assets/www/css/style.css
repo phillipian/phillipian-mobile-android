@@ -24,6 +24,7 @@
 .article-list-item-thumbnail {
 	width: 90px;
 	float: right;
+	margin-left: 10px;
 }
 
 .header-logo {
@@ -41,6 +42,7 @@
 	height: 40px;
 	width: 180px;
 	background: url('../img/phillipian_header_back_btn.png');
+	cursor: pointer;
 }
 
 .ui-header {

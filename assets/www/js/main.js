@@ -1,4 +1,4 @@
-// Based heavily off of http://coenraets.org/blog/2011/12/backbone-js-wine-cellar-tutorial-part-1-getting-started/
+// Based off of http://coenraets.org/blog/2011/12/backbone-js-wine-cellar-tutorial-part-1-getting-started/
 
 // Article model - holds the data for an individual article
 window.Article = Backbone.Model.extend({
@@ -174,6 +174,7 @@ window.AppRouter = Backbone.Router.extend({
     // defining the routes inside of the app
 	routes: {
         "": "main",
+        "main-page": "main",
         "article/:nid": "article",
         "login": "login"
     },
@@ -182,10 +183,21 @@ window.AppRouter = Backbone.Router.extend({
     	console.log("Changing to main view");
     	
     	if ($('body').has('#main-page').length > 0) {
+    		
     		console.log('Page already exists. Just transition to it!')
-    		$.mobile.changePage('#main-page', {transition: 'none'});
-    	} else {  	
-	    	this.articleList = this.getArticles('all');
+    		$.mobile.changePage('#main-page', {transition: 'none', changeHash: false});
+    		this.navigate("");
+    		
+    	} else {
+    		
+    		var self = this;
+    		
+	    	this.articleList = this.getArticles('all', function() {
+	    		if (self.requestedNid) {
+	    			console.log("Go back to the originally requested article");
+	    			self.article(self.requestedNid);
+	    		}
+	    	});
 	    	
 	        this.articleListView = new ArticleListView({collection: this.articleList});
 	        this.mainPageView = new MainPageView();
@@ -205,10 +217,10 @@ window.AppRouter = Backbone.Router.extend({
 		    		textVisible: true,
 		    	});
 	        	
-	        	app.changeSection($(this).val()); // is there a better way to do this? not happy with needing to call method on the variable app
+	        	self.changeSection($(this).val());
 	    	});	
 	        
-	        $('.settings-btn').click(app.showSettings);
+	        $('.settings-btn').click(self.showSettings);
 	        
 	        /*
 	        $.post('http://www.phillipian.net/mobile/system/connect.json', function(data) {
@@ -229,35 +241,43 @@ window.AppRouter = Backbone.Router.extend({
     
     article: function (nid) {
     	console.log("Changing to article view (nid: " + nid + ")");
-    	this.currentArticle = this.articleList.get(nid);
-        this.articlePageView = new ArticlePageView({model: this.currentArticle});
-        
-        this.changePage(this.articlePageView);
-    	
-    	window.disqus_shortname = 'phillipian';
-    	window.disqus_url = 'http://phillipian.net/node/' + this.currentArticle.get('nid');
-    	
-    	console.log("load disqus for " + disqus_url);
-    	
-    	$('.share-btn').click( function() {
-	    	window.plugins.share.show({
-	    	    subject: app.currentArticle.get('title'),
-	    	    text: 'http://phillipian.net' + app.currentArticle.get('url')},
-	    	    function() {}, // Success function
-	    	    function() {alert('Share failed')} // Failure function
-	    	);
-    	});
-    	
-    	
-    	/* * * DON'T EDIT BELOW THIS LINE * * */
-    	/*(function() {
-    	    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-    	    dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
-    	    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    	})(); */
-        
-        //$('.article-comments').load('http://p.phillipian.net/disqus-comments.html', {nid: this.article.get('nid')});
-    	//var myScroll = new iScroll('content-wrapper');
+    	if (this.articleList != undefined) {
+    		this.currentArticle = this.articleList.get(nid);
+    		
+            this.articlePageView = new ArticlePageView({model: this.currentArticle});
+            
+            this.changePage(this.articlePageView);
+        	
+        	window.disqus_shortname = 'phillipian';
+        	window.disqus_url = 'http://phillipian.net/node/' + this.currentArticle.get('nid');
+        	
+        	console.log("load disqus for " + disqus_url);
+        	
+        	$('.share-btn').click( function() {
+    	    	window.plugins.share.show({
+    	    	    subject: app.currentArticle.get('title'),
+    	    	    text: 'http://phillipian.net' + app.currentArticle.get('url')},
+    	    	    function() {}, // Success function
+    	    	    function() {alert('Share failed')} // Failure function
+    	    	);
+        	});
+        	
+        	
+        	/* * * DON'T EDIT BELOW THIS LINE * * */
+        	/*(function() {
+        	    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        	    dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        	    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        	})(); */
+            
+            //$('.article-comments').load('http://p.phillipian.net/disqus-comments.html', {nid: this.article.get('nid')});
+        	//var myScroll = new iScroll('content-wrapper');
+    	}
+    	else {
+    		console.log("We need to load the articles first. Go back to the main view and then come back.")
+    		this.requestedNid = nid;
+            this.main();
+    	}
     },
     
     login: function() {
@@ -290,6 +310,7 @@ window.AppRouter = Backbone.Router.extend({
         $(page.el).attr('data-theme', 'a');
         
         page.render();
+        
         $('body').append($(page.el));
         
         var transition = $.mobile.defaultPageTransition;
@@ -311,7 +332,7 @@ window.AppRouter = Backbone.Router.extend({
     	$(this.mainPageView.el).append(this.articleListView.el);
     },
     
-    getArticles: function(section) {
+    getArticles: function(section, callback) {
 		var newArticleList = new ArticleCollection(section);
 		
 		if (window.localStorage.getItem("articleList-" + section + "-timestamp") - new Date().getTime() > 3600000) {
@@ -321,16 +342,23 @@ window.AppRouter = Backbone.Router.extend({
 			if (cachedArticleListData != null && cachedArticleListData.length > 0) {
 				console.log("Loading from local storage");
 				newArticleList.reset(cachedArticleListData);
-				if (newArticleList.length > 1)
+				if (newArticleList.length > 1) {
+					if(typeof callback == 'function')
+						callback();
 					return newArticleList;
+				}
 			}
 		}
+		
 		console.log("Fetching latest articles from section: " + section);
 		newArticleList.fetch({success: function(collection, response, options) {
 				window.localStorage.setItem("articleList-" + collection.section, JSON.stringify(collection));
 				window.localStorage.setItem("articleList-" + collection.section + "-timestamp", new Date().getTime());
+				if(typeof callback == 'function')
+					callback();
 			}
 		});
+		
 		return newArticleList;
     },
     

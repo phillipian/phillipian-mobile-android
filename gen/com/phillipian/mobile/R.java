@@ -17,7 +17,11 @@ public final class R {
     public static final class drawable {
         public static final int ic_launcher=0x7f020000;
         public static final int icon=0x7f020001;
-        public static final int splash=0x7f020002;
+        public static final int phillipian_mobile_spash=0x7f020002;
+        public static final int phillipian_mobile_splash=0x7f020003;
+        public static final int splash=0x7f020004;
+        public static final int splash1=0x7f020005;
+        public static final int splash_screen=0x7f020006;
     }
     public static final class layout {
         public static final int main=0x7f030000;
